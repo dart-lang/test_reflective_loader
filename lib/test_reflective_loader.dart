@@ -5,7 +5,6 @@
 library test_reflective_loader;
 
 import 'dart:async';
-@MirrorsUsed(metaTargets: 'ReflectiveTest')
 import 'dart:mirrors';
 
 import 'package:test/test.dart' as test_package;
@@ -267,20 +266,18 @@ Future _runTest(ClassMirror classMirror, Symbol symbol) {
 typedef dynamic _TestFunction();
 
 /**
- * A marker annotation used to instruct dart2js to keep reflection information
- * for the annotated classes.
- */
-class _ReflectiveTest {
-  const _ReflectiveTest();
-}
-
-/**
  * A marker annotation used to annotate test methods with additional timeout
  * information.
  */
 class TestTimeout {
+  /**
+   * The timeout used to modify or replace the default timeout.
+   */
   final test_package.Timeout timeout;
 
+  /**
+   * Create a timeout annotation.
+   */
   const TestTimeout(this.timeout);
 }
 
@@ -319,6 +316,14 @@ class _Group {
     TestTimeout timeout = _getAnnotationInstance(memberMirror, TestTimeout);
     tests.add(new _Test(isSolo, fullName, function, timeout?.timeout));
   }
+}
+
+/**
+ * A marker annotation used to instruct dart2js to keep reflection information
+ * for the annotated classes.
+ */
+class _ReflectiveTest {
+  const _ReflectiveTest();
 }
 
 /**
