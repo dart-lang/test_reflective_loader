@@ -287,9 +287,8 @@ class TestTimeout {
 }
 
 /**
- * A marker annotation used to annotate overridden test methods (so we cannot
- * rename them to `fail_`) which are expected to fail at `assert` in the
- * checked mode.
+ * A marker annotation used to annotate test methods which are expected to fail
+ * when asserts are enabled.
  */
 class _AssertFailingTest {
   const _AssertFailingTest();
