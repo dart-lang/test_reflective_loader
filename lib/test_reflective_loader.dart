@@ -268,7 +268,7 @@ typedef dynamic _TestFunction();
  */
 class FailingTest {
   /**
-   * Initialize this annotation with the given issue URI.
+   * Initialize this annotation with the given arguments.
    *
    * [issue] is a full URI describing the failure and used for tracking.
    * [reason] is a free form textual description.
