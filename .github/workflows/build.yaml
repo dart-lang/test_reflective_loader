@@ -1,32 +1,51 @@
-name: Dart
+name: CI
 
 on:
-  pull_request:
+  # Run on PRs and pushes to the default branch.
   push:
-    branches:
-      - master
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
   schedule:
-    # “At 00:00 (UTC) on Sunday.”
-    - cron: '0 0 * * 0'
+    - cron: "0 0 * * 0"
+
+env:
+  PUB_ENVIRONMENT: bot.github
 
 jobs:
-  build:
+  # Check code formatting and static analysis on a single OS (linux)
+  # against Dart dev and stable.
+  analyze:
     runs-on: ubuntu-latest
-
-    container:
-      image:  google/dart:beta
-
+    strategy:
+      matrix:
+        sdk: [dev]
     steps:
       - uses: actions/checkout@v2
+      - uses: dart-lang/setup-dart@v1.1
+        with:
+          sdk: ${{ matrix.sdk }}
+      - id: install
+        run: dart pub get
+      - run: dart format --output=none --set-exit-if-changed .
+        if: always() && steps.install.outcome == 'success'
+      - run: dart analyze --fatal-infos
+        if: always() && steps.install.outcome == 'success'
 
-      - name: pub get
-        run: pub get
-
-      - name: dart format
-        run: dart format --output=none --set-exit-if-changed .
-
-      - name: dart analyze
-        run: dart analyze
-
-      - name: dart test
-        run: dart test
+  test:
+    needs: analyze
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        sdk: [2.12.0, dev]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: dart-lang/setup-dart@v1.1
+        with:
+          sdk: ${{ matrix.sdk }}
+      - id: install
+        run: dart pub get
+      - run: dart test --platform vm
+        if: always() && steps.install.outcome == 'success'

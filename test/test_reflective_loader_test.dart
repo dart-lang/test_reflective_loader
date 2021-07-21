@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: non_constant_identifier_names
+
 import 'dart:async';
 
 import 'package:test/test.dart';
@@ -31,7 +33,7 @@ class TestReflectiveLoaderTest {
 
   @failingTest
   Future test_fails_throws_async() {
-    return new Future.error('foo');
+    return Future.error('foo');
   }
 
   @skippedTest

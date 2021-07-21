@@ -9,40 +9,29 @@ import 'dart:mirrors';
 
 import 'package:test/test.dart' as test_package;
 
-/**
- * A marker annotation used to annotate test methods which are expected to fail
- * when asserts are enabled.
- */
-const _AssertFailingTest assertFailingTest = const _AssertFailingTest();
+/// A marker annotation used to annotate test methods which are expected to fail
+/// when asserts are enabled.
+const _AssertFailingTest assertFailingTest = _AssertFailingTest();
 
-/**
- * A marker annotation used to annotate test methods which are expected to fail.
- */
-const FailingTest failingTest = const FailingTest();
+/// A marker annotation used to annotate test methods which are expected to
+/// fail.
+const FailingTest failingTest = FailingTest();
 
-/**
- * A marker annotation used to instruct dart2js to keep reflection information
- * for the annotated classes.
- */
-const _ReflectiveTest reflectiveTest = const _ReflectiveTest();
+/// A marker annotation used to instruct dart2js to keep reflection information
+/// for the annotated classes.
+const _ReflectiveTest reflectiveTest = _ReflectiveTest();
 
-/**
- * A marker annotation used to annotate test methods that should be skipped.
- */
-const SkippedTest skippedTest = const SkippedTest();
+/// A marker annotation used to annotate test methods that should be skipped.
+const SkippedTest skippedTest = SkippedTest();
 
-/**
- * A marker annotation used to annotate "solo" groups and tests.
- */
-const _SoloTest soloTest = const _SoloTest();
+/// A marker annotation used to annotate "solo" groups and tests.
+const _SoloTest soloTest = _SoloTest();
 
 final List<_Group> _currentGroups = <_Group>[];
 int _currentSuiteLevel = 0;
 String _currentSuiteName = '';
 
-/**
- * Is `true` the application is running in the checked mode.
- */
+/// Is `true` the application is running in the checked mode.
 final bool _isCheckedMode = () {
   try {
     assert(false);
@@ -52,13 +41,11 @@ final bool _isCheckedMode = () {
   }
 }();
 
-/**
- * Run the [define] function parameter that calls [defineReflectiveTests] to
- * add normal and "solo" tests, and also calls [defineReflectiveSuite] to
- * create embedded suites.  If the current suite is the top-level one, perform
- * check for "solo" groups and tests, and run all or only "solo" items.
- */
-void defineReflectiveSuite(void define(), {String name = ''}) {
+/// Run the [define] function parameter that calls [defineReflectiveTests] to
+/// add normal and "solo" tests, and also calls [defineReflectiveSuite] to
+/// create embedded suites.  If the current suite is the top-level one, perform
+/// check for "solo" groups and tests, and run all or only "solo" items.
+void defineReflectiveSuite(void Function() define, {String name = ''}) {
   String groupName = _currentSuiteName;
   _currentSuiteLevel++;
   try {
@@ -71,32 +58,30 @@ void defineReflectiveSuite(void define(), {String name = ''}) {
   _addTestsIfTopLevelSuite();
 }
 
-/**
- * Runs test methods existing in the given [type].
- *
- * If there is a "solo" test method in the top-level suite, only "solo" methods
- * are run.
- *
- * If there is a "solo" test type, only its test methods are run.
- *
- * Otherwise all tests methods of all test types are run.
- *
- * Each method is run with a new instance of [type].
- * So, [type] should have a default constructor.
- *
- * If [type] declares method `setUp`, it methods will be invoked before any test
- * method invocation.
- *
- * If [type] declares method `tearDown`, it will be invoked after any test
- * method invocation. If method returns [Future] to test some asynchronous
- * behavior, then `tearDown` will be invoked in `Future.complete`.
- */
+/// Runs test methods existing in the given [type].
+///
+/// If there is a "solo" test method in the top-level suite, only "solo" methods
+/// are run.
+///
+/// If there is a "solo" test type, only its test methods are run.
+///
+/// Otherwise all tests methods of all test types are run.
+///
+/// Each method is run with a new instance of [type].
+/// So, [type] should have a default constructor.
+///
+/// If [type] declares method `setUp`, it methods will be invoked before any
+/// test method invocation.
+///
+/// If [type] declares method `tearDown`, it will be invoked after any test
+/// method invocation. If method returns [Future] to test some asynchronous
+/// behavior, then `tearDown` will be invoked in `Future.complete`.
 void defineReflectiveTests(Type type) {
   ClassMirror classMirror = reflectClass(type);
   if (!classMirror.metadata.any((InstanceMirror annotation) =>
       annotation.type.reflectedType == _ReflectiveTest)) {
     String name = MirrorSystem.getName(classMirror.qualifiedName);
-    throw new Exception('Class $name must have annotation "@reflectiveTest" '
+    throw Exception('Class $name must have annotation "@reflectiveTest" '
         'in order to be run by runReflectiveTests.');
   }
 
@@ -104,7 +89,7 @@ void defineReflectiveTests(Type type) {
   {
     bool isSolo = _hasAnnotationInstance(classMirror, soloTest);
     String className = MirrorSystem.getName(classMirror.simpleName);
-    group = new _Group(isSolo, _combineNames(_currentSuiteName, className));
+    group = _Group(isSolo, _combineNames(_currentSuiteName, className));
     _currentGroups.add(group);
   }
 
@@ -162,9 +147,7 @@ void defineReflectiveTests(Type type) {
   _addTestsIfTopLevelSuite();
 }
 
-/**
- * If the current suite is the top-level one, add tests to the `test` package.
- */
+/// If the current suite is the top-level one, add tests to the `test` package.
 void _addTestsIfTopLevelSuite() {
   if (_currentSuiteLevel == 0) {
     void runTests({required bool allGroups, required bool allTests}) {
@@ -191,10 +174,8 @@ void _addTestsIfTopLevelSuite() {
   }
 }
 
-/**
- * Return the combination of the [base] and [addition] names.
- * If any other two is `null`, then the other one is returned.
- */
+/// Return the combination of the [base] and [addition] names.
+/// If any other two is `null`, then the other one is returned.
 String _combineNames(String base, String addition) {
   if (base.isEmpty) {
     return addition;
@@ -229,33 +210,33 @@ bool _hasSkippedTestAnnotation(MethodMirror method) =>
 
 Future<Object?> _invokeSymbolIfExists(
     InstanceMirror instanceMirror, Symbol symbol) {
-  Object? invocationResult = null;
+  Object? invocationResult;
   InstanceMirror? closure;
   try {
     closure = instanceMirror.getField(symbol);
-  } on NoSuchMethodError {}
+  } on NoSuchMethodError {
+    // noop
+  }
 
   if (closure is ClosureMirror) {
     invocationResult = closure.apply([]).reflectee;
   }
-  return new Future.value(invocationResult);
+  return Future.value(invocationResult);
 }
 
-/**
- * Run a test that is expected to fail, and confirm that it fails.
- *
- * This properly handles the following cases:
- * - The test fails by throwing an exception
- * - The test returns a future which completes with an error.
- * - An exception is thrown to the zone handler from a timer task.
- */
+/// Run a test that is expected to fail, and confirm that it fails.
+///
+/// This properly handles the following cases:
+/// - The test fails by throwing an exception
+/// - The test returns a future which completes with an error.
+/// - An exception is thrown to the zone handler from a timer task.
 Future<Object?>? _runFailingTest(ClassMirror classMirror, Symbol symbol) {
   bool passed = false;
   return runZonedGuarded(() {
-    return new Future.sync(() => _runTest(classMirror, symbol)).then<void>((_) {
+    return Future.sync(() => _runTest(classMirror, symbol)).then((_) {
       passed = true;
       test_package.fail('Test passed - expected to fail.');
-    }).catchError((e) {
+    }).catchError((Object e) {
       // if passed, and we call fail(), rethrow this exception
       if (passed) {
         throw e;
@@ -272,64 +253,49 @@ Future<Object?>? _runFailingTest(ClassMirror classMirror, Symbol symbol) {
 }
 
 Future<Object?> _runTest(ClassMirror classMirror, Symbol symbol) {
-  InstanceMirror instanceMirror = classMirror.newInstance(new Symbol(''), []);
+  InstanceMirror instanceMirror = classMirror.newInstance(Symbol(''), []);
   return _invokeSymbolIfExists(instanceMirror, #setUp)
       .then((_) => instanceMirror.invoke(symbol, []).reflectee)
       .whenComplete(() => _invokeSymbolIfExists(instanceMirror, #tearDown));
 }
 
-typedef dynamic _TestFunction();
+typedef _TestFunction = dynamic Function();
 
-/**
- * A marker annotation used to annotate test methods which are expected to fail.
- */
+/// A marker annotation used to annotate test methods which are expected to
+/// fail.
 class FailingTest {
-  /**
-   * Initialize this annotation with the given arguments.
-   *
-   * [issue] is a full URI describing the failure and used for tracking.
-   * [reason] is a free form textual description.
-   */
+  /// Initialize this annotation with the given arguments.
+  ///
+  /// [issue] is a full URI describing the failure and used for tracking.
+  /// [reason] is a free form textual description.
   const FailingTest({String? issue, String? reason});
 }
 
-/**
- * A marker annotation used to annotate test methods which are skipped.
- */
+/// A marker annotation used to annotate test methods which are skipped.
 class SkippedTest {
-  /**
-   * Initialize this annotation with the given arguments.
-   *
-   * [issue] is a full URI describing the failure and used for tracking.
-   * [reason] is a free form textual description.
-   */
+  /// Initialize this annotation with the given arguments.
+  ///
+  /// [issue] is a full URI describing the failure and used for tracking.
+  /// [reason] is a free form textual description.
   const SkippedTest({String? issue, String? reason});
 }
 
-/**
- * A marker annotation used to annotate test methods with additional timeout
- * information.
- */
+/// A marker annotation used to annotate test methods with additional timeout
+/// information.
 class TestTimeout {
   final test_package.Timeout _timeout;
 
-  /**
-   * Initialize this annotation with the given timeout.
-   */
+  /// Initialize this annotation with the given timeout.
   const TestTimeout(test_package.Timeout timeout) : _timeout = timeout;
 }
 
-/**
- * A marker annotation used to annotate test methods which are expected to fail
- * when asserts are enabled.
- */
+/// A marker annotation used to annotate test methods which are expected to fail
+/// when asserts are enabled.
 class _AssertFailingTest {
   const _AssertFailingTest();
 }
 
-/**
- * Information about a type based test group.
- */
+/// Information about a type based test group.
 class _Group {
   final bool isSolo;
   final String name;
@@ -341,7 +307,7 @@ class _Group {
 
   void addSkippedTest(String name) {
     var fullName = _combineNames(this.name, name);
-    tests.add(new _Test.skipped(isSolo, fullName));
+    tests.add(_Test.skipped(isSolo, fullName));
   }
 
   void addTest(bool isSolo, String name, MethodMirror memberMirror,
@@ -349,28 +315,22 @@ class _Group {
     var fullName = _combineNames(this.name, name);
     var timeout =
         _getAnnotationInstance(memberMirror, TestTimeout) as TestTimeout?;
-    tests.add(new _Test(isSolo, fullName, function, timeout?._timeout));
+    tests.add(_Test(isSolo, fullName, function, timeout?._timeout));
   }
 }
 
-/**
- * A marker annotation used to instruct dart2js to keep reflection information
- * for the annotated classes.
- */
+/// A marker annotation used to instruct dart2js to keep reflection information
+/// for the annotated classes.
 class _ReflectiveTest {
   const _ReflectiveTest();
 }
 
-/**
- * A marker annotation used to annotate "solo" groups and tests.
- */
+/// A marker annotation used to annotate "solo" groups and tests.
 class _SoloTest {
   const _SoloTest();
 }
 
-/**
- * Information about a test.
- */
+/// Information about a test.
 class _Test {
   final bool isSolo;
   final String name;
