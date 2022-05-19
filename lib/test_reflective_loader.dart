@@ -254,7 +254,8 @@ Future<Object?> _invokeSymbolIfExists(
 Future<Object?>? _runFailingTest(ClassMirror classMirror, Symbol symbol) {
   bool passed = false;
   return runZonedGuarded(() {
-    return Future.sync(() => _runTest(classMirror, symbol)).then((_) {
+    // ignore: void_checks
+    return Future.sync(() => _runTest(classMirror, symbol)).then<void>((_) {
       passed = true;
       test_package.fail('Test passed - expected to fail.');
     }).catchError((e) {
